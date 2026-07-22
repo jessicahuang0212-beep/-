@@ -2,15 +2,15 @@
 <html lang="zh-TW" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>✨ 星指南</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="星指南">
-   <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
-   <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
-   <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon.png">
     <meta name="theme-color" content="#121212">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -43,12 +43,20 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* 防止手機長按選取與右鍵干擾 */
+        
+        /* 📱 關鍵：套用跨平台手機原生系統字體集 */
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "MiSans", "Roboto", "Helvetica Neue", "Segoe UI", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            
+            /* 防止手機操作時，非文字元件被隨意長按選取與出現右鍵干擾 */
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
         }
+
+        /* 確保輸入框、文字框與選單在手機上依然可以正常輸入和複製文字 */
         input, textarea, select {
             -webkit-user-select: text;
             user-select: text;
@@ -204,6 +212,7 @@
             renderPhotos();
         });
 
+        // 頁籤切換
         function switchTab(tab) {
             ['Digest', 'Budget', 'Album'].forEach(t => {
                 document.getElementById('view' + t).classList.add('hidden');
@@ -214,6 +223,7 @@
             activeTab.className = 'flex-1 py-2.5 rounded-xl font-medium text-sm transition gradient-accent text-white shadow-sm';
         }
 
+        // 深淺色模式切換
         function toggleDarkMode() {
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
@@ -256,10 +266,11 @@
             }
         }
 
+        // 後端 AI 情報解析
         async function analyzePost() {
             const input = document.getElementById('postInput').value.trim();
             if (!input) {
-                alert('請先輸入內容或網址！');
+                alert('請先輸入內文或連結！');
                 return;
             }
 
@@ -292,7 +303,7 @@
                 const reminderTime = currentTempData.reminders[0]?.time;
                 document.getElementById('resReminder').innerText = (reminderTime && reminderTime !== '未定' && reminderTime !== '原文未提及') ? `${currentTempData.reminders[0].label}：${reminderTime}` : '無特定時間';
                 
-                // 行事曆按鈕顯示判斷
+                // 行事曆按鈕連動控制
                 const calendarBtn = document.getElementById('calendarBtn');
                 if (reminderTime && reminderTime !== '未定' && reminderTime !== '原文未提及') {
                     calendarBtn.classList.remove('hidden');
@@ -311,6 +322,7 @@
             }
         }
 
+        // 一鍵加到 Google / 手機行事曆
         function addToCalendar() {
             if (!currentTempData || !currentTempData.reminders[0]) return;
 
@@ -322,7 +334,7 @@
             const parsedDate = Date.parse(rawTime.replace(/\//g, '-'));
             if (!isNaN(parsedDate)) startDate = new Date(parsedDate);
 
-            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 預算預設行程 1 小時
             const formatTime = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g, '');
 
             const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('✨ ' + eventName)}&dates=${formatTime(startDate)}/${formatTime(endDate)}&details=${encodeURIComponent('【星指南 AI 摘要】\n' + details)}&sf=true&output=xml`;
@@ -330,6 +342,7 @@
             window.open(googleCalendarUrl, '_blank');
         }
 
+        // 將 AI 資訊匯入記帳本
         function transferToBudget() {
             if (!currentTempData) return;
             expenses.unshift({
@@ -340,16 +353,17 @@
             });
             saveAndRefreshExpenses();
             switchTab('budget');
-            alert('已成功記入愛意帳本！');
+            alert('已成功將花費記入愛意帳本！');
         }
 
+        // 記帳與預算管理邏輯
         function addExpense() {
             const name = document.getElementById('expenseName').value.trim();
             const amount = parseInt(document.getElementById('expenseAmount').value);
             const category = document.getElementById('expenseCategory').value;
 
             if (!name || isNaN(amount) || amount <= 0) {
-                alert('請填寫正確品項與金額！');
+                alert('請填寫正確的品項名稱與金額！');
                 return;
             }
 
@@ -369,7 +383,7 @@
         }
 
         function deleteExpense(index) {
-            if (confirm('確定要刪除這筆花費嗎？')) {
+            if (confirm('確定要刪除這筆花費明細嗎？')) {
                 expenses.splice(index, 1);
                 saveAndRefreshExpenses();
             }
@@ -395,6 +409,8 @@
             
             const remEl = document.getElementById('budgetRemaining');
             remEl.innerText = `$${remaining.toLocaleString()}`;
+            
+            // 超支時數字自動變紅字警示
             remEl.className = remaining < 0 ? 'text-2xl font-black mt-0.5 text-rose-500' : 'text-2xl font-black mt-0.5';
 
             let percent = Math.min(Math.max((remaining / totalBudget) * 100, 0), 100);
@@ -406,7 +422,7 @@
             const list = document.getElementById('expenseList');
             list.innerHTML = '';
             if (expenses.length === 0) {
-                list.innerHTML = `<p class="text-xs text-center text-gray-400 py-4">目前沒有紀錄，快開始記帳吧！</p>`;
+                list.innerHTML = `<p class="text-xs text-center text-gray-400 py-4">目前沒有明細紀錄，快開始記錄吧！</p>`;
                 return;
             }
 
@@ -430,13 +446,14 @@
             });
         }
 
+        // 回憶相簿功能邏輯
         function addPhoto() {
             const fileInput = document.getElementById('photoInput');
             const date = document.getElementById('photoDate').value.trim() || '未填時間';
             const location = document.getElementById('photoLocation').value.trim() || '未填地點';
 
             if (fileInput.files.length === 0) {
-                alert('請先選擇一張照片！');
+                alert('請先選取一張回憶照片！');
                 return;
             }
 
@@ -453,7 +470,7 @@
         }
 
         function deletePhoto(index) {
-            if (confirm('確定要刪除這張照片嗎？')) {
+            if (confirm('確定要刪除這張演唱會照片回憶嗎？')) {
                 photos.splice(index, 1);
                 localStorage.setItem('concertPhotos', JSON.stringify(photos));
                 renderPhotos();
@@ -464,7 +481,7 @@
             const gallery = document.getElementById('photoGallery');
             gallery.innerHTML = '';
             if (photos.length === 0) {
-                gallery.innerHTML = `<p class="col-span-2 text-xs text-center text-gray-400 py-6">還沒有上傳過照片，趕快上傳第一張回憶吧！</p>`;
+                gallery.innerHTML = `<p class="col-span-2 text-xs text-center text-gray-400 py-6">還沒有上傳過照片，趕快留下美好的追星印記吧！</p>`;
                 return;
             }
 
