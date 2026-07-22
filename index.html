@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>✨ 星指南</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="星指南">
+    <link rel="apple-touch-icon" href="https://api.iconify.design/fluent-emoji:sparkles.svg">
+    <meta name="theme-color" content="#121212">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#121212',
+                        card: '#1e1e1e',
+                        cardlight: '#ffffff',
+                        accent1: 'var(--accent-1, #a855f7)',
+                        accent2: 'var(--accent-2, #ec4899)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --accent-1: #a855f7;
+            --accent-2: #ec4899;
+        }
+        .gradient-accent {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* 防止手機長按選取與右鍵干擾 */
+        body {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        input, textarea, select {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-darkbg text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-300">
+
+    <div class="max-w-md mx-auto p-4 sm:p-6 pb-20">
+        
+        <header class="flex justify-between items-center mb-6 pt-2">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-gradient">✨ 星指南</h1>
+                <p class="text-xs text-gray-400">追星情報與愛意帳本</p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-white dark:bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-sm" title="切換深淺色">
+                    <span id="themeIcon">☀️</span>
+                </button>
+                <button onclick="toggleThemeMenu()" class="p-2 rounded-full bg-white dark:bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-sm" title="應援色設定">
+                    🎨
+                </button>
+            </div>
+        </header>
+
+        <div id="themeMenu" class="hidden mb-6 p-4 bg-white dark:bg-card rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg text-sm transition-all">
+            <p class="font-bold mb-2 text-xs text-gray-400 uppercase tracking-wider">選擇本命應援主題</p>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <button onclick="setTheme('#a855f7', '#ec4899')" class="p-2 rounded-xl text-left border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition">💜 經典紫粉漸層</button>
+                <button onclick="setTheme('#3b82f6', '#06b6d4')" class="p-2 rounded-xl text-left border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 transition">💙 寶藍與湖水藍</button>
+                <button onclick="setTheme('#f43f5e', '#fb7185')" class="p-2 rounded-xl text-left border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 transition">❤️ 熱情應援紅</button>
+                <button onclick="setTheme('#10b981', '#34d399')" class="p-2 rounded-xl text-left border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition">💚 活力清新綠</button>
+            </div>
+            <p class="font-bold mb-2 text-xs text-gray-400 uppercase tracking-wider">自訂專屬色碼</p>
+            <div class="flex items-center space-x-2">
+                <input type="color" id="customColor1" value="#a855f7" class="w-1/2 h-8 rounded cursor-pointer bg-transparent">
+                <input type="color" id="customColor2" value="#ec4899" class="w-1/2 h-8 rounded cursor-pointer bg-transparent">
+                <button onclick="applyCustomTheme()" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-lg text-xs font-bold">套用</button>
+            </div>
+        </div>
+
+        <div class="flex p-1 bg-white dark:bg-card rounded-2xl border border-gray-200 dark:border-gray-800 mb-6 shadow-sm">
+            <button onclick="switchTab('digest')" id="tabDigest" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition gradient-accent text-white shadow-sm">情報摘要</button>
+            <button onclick="switchTab('budget')" id="tabBudget" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition text-gray-500 dark:text-gray-400">愛意帳本</button>
+            <button onclick="switchTab('album')" id="tabAlbum" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition text-gray-500 dark:text-gray-400">回憶相簿</button>
+        </div>
+
+        <div id="viewDigest" class="space-y-4">
+            <div class="bg-white dark:bg-card p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">貼上追星公告文字內容</label>
+                <textarea id="postInput" rows="4" placeholder="請在此貼上演唱會公告、搶票訊息或官方貼文內文..." class="w-full p-3 rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-sm focus:outline-none focus:border-accent1 resize-none mb-3"></textarea>
+                <button onclick="analyzePost()" id="analyzeBtn" class="w-full py-3 rounded-xl gradient-accent text-white font-bold text-sm shadow-md active:scale-95 transition">
+                    ✨ 開始 AI 智慧解析
+                </button>
+            </div>
+
+            <div id="resultCard" class="hidden bg-white dark:bg-card p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
+                <div class="flex justify-between items-center">
+                    <span id="resPlatform" class="px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">平台解析中</span>
+                    <span class="text-xs text-gray-400">AI 智能提取</span>
+                </div>
+                
+                <div>
+                    <h3 class="font-bold text-base mb-2 text-gray-800 dark:text-gray-100">📌 重點摘要</h3>
+                    <ul id="resPoints" class="space-y-1.5 text-sm text-gray-600 dark:text-gray-300"></ul>
+                </div>
+
+                <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                    <p class="text-xs text-purple-400 font-bold mb-0.5">📅 重要時間提醒</p>
+                    <p id="resReminder" class="text-sm font-semibold text-gray-800 dark:text-gray-200">無特定時間</p>
+                </div>
+
+                <button onclick="transferToBudget()" class="w-full py-2.5 rounded-xl bg-gray-100 dark:bg-[#252525] hover:bg-gray-200 dark:hover:bg-[#303030] text-sm font-bold text-accent1 transition border border-accent1/20 flex items-center justify-center space-x-1">
+                    <span>➕ 轉為追星預算/支出 (<span id="resAmountText">$0</span>)</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="viewBudget" class="hidden space-y-4">
+            <div class="bg-white dark:bg-card p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase font-bold">本月愛意預算剩餘</p>
+                        <h2 id="budgetRemaining" class="text-2xl font-black mt-0.5">$1,800</h2>
+                    </div>
+                    <button onclick="editTotalBudget()" class="p-2 rounded-xl bg-gray-100 dark:bg-[#252525] text-xs font-bold" title="編輯總預算">✏️ 預算</button>
+                </div>
+                <div class="w-full bg-gray-100 dark:bg-[#151515] h-3 rounded-full overflow-hidden">
+                    <div id="budgetBar" class="gradient-accent h-full transition-all duration-500" style="width: 36%;"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-400">
+                    <span>已花費: <strong id="spentTotal" class="text-gray-700 dark:text-gray-200">$3,200</strong></span>
+                    <span>總預算: <strong id="budgetTotal" class="text-gray-700 dark:text-gray-200">$5,000</strong></span>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-card p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-3">
+                <h3 class="font-bold text-sm text-gray-700 dark:text-gray-300">📝 新增一筆花費</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="expenseName" placeholder="品項名稱 (例: 演唱會門票)" class="col-span-2 p-3 rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-sm focus:outline-none focus:border-accent1">
+                    <input type="number" id="expenseAmount" placeholder="金額 ($)" class="p-3 rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-sm focus:outline-none focus:border-accent1">
+                    <select id="expenseCategory" class="p-3 rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-sm focus:outline-none focus:border-accent1">
+                        <option value="門票">🎟️ 門票</option>
+                        <option value="專輯">💿 專輯</option>
+                        <option value="周邊">🧸 周邊</option>
+                        <option value="應援">☕ 應援</option>
+                    </select>
+                </div>
+                <button onclick="addExpense()" class="w-full py-3 rounded-xl gradient-accent text-white font-bold text-sm shadow-md active:scale-95 transition">
+                    記一筆
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="font-bold text-sm text-gray-700 dark:text-gray-300 px-1">近期明細</h3>
+                <div id="expenseList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <div id="viewAlbum" class="hidden space-y-4">
+            <div class="bg-white dark:bg-card p-4 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-3">
+                <h3 class="font-bold text-sm text-gray-700 dark:text-gray-300">📸 新增演唱會回憶</h3>
+                <input type="file" id="photoInput" accept="image/*" class="w-full p-2 text-xs rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="photoDate" placeholder="時間 (例: 2026/07/21)" class="p-2.5 rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-xs">
+                    <input type="text" id="photoLocation" placeholder="地點 (例: 台北小巨蛋)" class="p-2.5 rounded-xl bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-xs">
+                </div>
+                <button onclick="addPhoto()" class="w-full py-2.5 rounded-xl gradient-accent text-white font-bold text-xs shadow-md active:scale-95 transition">
+                    上傳到回憶相簿
+                </button>
+            </div>
+
+            <div id="photoGallery" class="grid grid-cols-2 gap-3"></div>
+        </div>
+
+    </div>
+
+    <script>
+        let totalBudget = parseInt(localStorage.getItem('starTotalBudget')) || 5000;
+        let expenses = JSON.parse(localStorage.getItem('starExpenses')) || [];
+        let photos = JSON.parse(localStorage.getItem('concertPhotos')) || [];
+        let currentTempData = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadThemeSettings();
+            renderBudget();
+            renderExpenses();
+            renderPhotos();
+        });
+
+        function switchTab(tab) {
+            ['Digest', 'Budget', 'Album'].forEach(t => {
+                document.getElementById('view' + t).classList.add('hidden');
+                document.getElementById('tab' + t).className = 'flex-1 py-2.5 rounded-xl font-medium text-sm transition text-gray-500 dark:text-gray-400';
+            });
+            document.getElementById('view' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            const activeTab = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            activeTab.className = 'flex-1 py-2.5 rounded-xl font-medium text-sm transition gradient-accent text-white shadow-sm';
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            localStorage.setItem('starThemeMode', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').innerText = isDark ? '☀️' : '🌙';
+        }
+
+        function toggleThemeMenu() {
+            document.getElementById('themeMenu').classList.toggle('hidden');
+        }
+
+        function setTheme(c1, c2) {
+            document.documentElement.style.setProperty('--accent-1', c1);
+            document.documentElement.style.setProperty('--accent-2', c2);
+            localStorage.setItem('starAccent1', c1);
+            localStorage.setItem('starAccent2', c2);
+            document.getElementById('themeMenu').classList.add('hidden');
+        }
+
+        function applyCustomTheme() {
+            const c1 = document.getElementById('customColor1').value;
+            const c2 = document.getElementById('customColor2').value;
+            setTheme(c1, c2);
+        }
+
+        function loadThemeSettings() {
+            const mode = localStorage.getItem('starThemeMode');
+            if (mode === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').innerText = '🌙';
+            } else {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').innerText = '☀️';
+            }
+            const c1 = localStorage.getItem('starAccent1');
+            const c2 = localStorage.getItem('starAccent2');
+            if (c1 && c2) {
+                document.documentElement.style.setProperty('--accent-1', c1);
+                document.documentElement.style.setProperty('--accent-2', c2);
+            }
+        }
+
+        async function analyzePost() {
+            const input = document.getElementById('postInput').value.trim();
+            if (!input) {
+                alert('請先輸入文字內容！');
+                return;
+            }
+
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerText = 'AI 智慧解析中... ⏳';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                const textResp = data.candidates[0].content.parts[0].text;
+                const cleanJson = textResp.replace(/```json/g, '').replace(/```/g, '').trim();
+                currentTempData = JSON.parse(cleanJson);
+
+                document.getElementById('resPlatform').innerText = currentTempData.platform || '追星情報';
+                
+                const pointsList = document.getElementById('resPoints');
+                pointsList.innerHTML = '';
+                currentTempData.points.forEach(p => {
+                    pointsList.innerHTML += `<li class="flex items-start"><span class="text-accent1 mr-1.5">•</span><span>${p}</span></li>`;
+                });
+
+                document.getElementById('resReminder').innerText = currentTempData.reminders[0]?.time ? `${currentTempData.reminders[0].label}：${currentTempData.reminders[0].time}` : '無特定時間';
+                document.getElementById('resAmountText').innerText = `$${currentTempData.expenseAmount || 5800}`;
+                document.getElementById('resultCard').classList.remove('hidden');
+
+            } catch (err) {
+                alert('解析失敗：' + err.message);
+            } finally {
+                btn.innerText = '✨ 開始 AI 智慧解析';
+                btn.disabled = false;
+            }
+        }
+
+        function transferToBudget() {
+            if (!currentTempData) return;
+            expenses.unshift({
+                name: currentTempData.expenseItem || '追星相關支出',
+                amount: currentTempData.expenseAmount || 5800,
+                category: currentTempData.expenseCategory || '門票',
+                status: '未到貨'
+            });
+            saveAndRefreshExpenses();
+            switchTab('budget');
+            alert('已成功記入愛意帳本！');
+        }
+
+        function addExpense() {
+            const name = document.getElementById('expenseName').value.trim();
+            const amount = parseInt(document.getElementById('expenseAmount').value);
+            const category = document.getElementById('expenseCategory').value;
+
+            if (!name || isNaN(amount) || amount <= 0) {
+                alert('請填寫正確品項與金額！');
+                return;
+            }
+
+            expenses.unshift({ name, amount, category, status: '未到貨' });
+            document.getElementById('expenseName').value = '';
+            document.getElementById('expenseAmount').value = '';
+            saveAndRefreshExpenses();
+        }
+
+        function editTotalBudget() {
+            const newBudget = prompt('請輸入本月總預算金額 ($)：', totalBudget);
+            if (newBudget !== null && !isNaN(newBudget) && newBudget > 0) {
+                totalBudget = parseInt(newBudget);
+                localStorage.setItem('starTotalBudget', totalBudget);
+                renderBudget();
+            }
+        }
+
+        function deleteExpense(index) {
+            if (confirm('確定要刪除這筆花費嗎？')) {
+                expenses.splice(index, 1);
+                saveAndRefreshExpenses();
+            }
+        }
+
+        function toggleStatus(index) {
+            expenses[index].status = expenses[index].status === '未到貨' ? '已收到' : '未到貨';
+            saveAndRefreshExpenses();
+        }
+
+        function saveAndRefreshExpenses() {
+            localStorage.setItem('starExpenses', JSON.stringify(expenses));
+            renderBudget();
+            renderExpenses();
+        }
+
+        function renderBudget() {
+            const spent = expenses.reduce((sum, item) => sum + item.amount, 0);
+            const remaining = totalBudget - spent;
+            
+            document.getElementById('spentTotal').innerText = `$${spent.toLocaleString()}`;
+            document.getElementById('budgetTotal').innerText = `$${totalBudget.toLocaleString()}`;
+            
+            const remEl = document.getElementById('budgetRemaining');
+            remEl.innerText = `$${remaining.toLocaleString()}`;
+            remEl.className = remaining < 0 ? 'text-2xl font-black mt-0.5 text-rose-500' : 'text-2xl font-black mt-0.5';
+
+            let percent = Math.min(Math.max((remaining / totalBudget) * 100, 0), 100);
+            if (remaining < 0) percent = 0;
+            document.getElementById('budgetBar').style.width = `${percent}%`;
+        }
+
+        function renderExpenses() {
+            const list = document.getElementById('expenseList');
+            list.innerHTML = '';
+            if (expenses.length === 0) {
+                list.innerHTML = `<p class="text-xs text-center text-gray-400 py-4">目前沒有紀錄，快開始記帳吧！</p>`;
+                return;
+            }
+
+            expenses.forEach((item, index) => {
+                const statusColor = item.status === '已收到' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-3.5 bg-white dark:bg-card rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm text-sm">
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-gray-800 dark:text-gray-200">${item.name}</div>
+                            <div class="flex items-center space-x-2 text-xs text-gray-400">
+                                <span>🏷️ ${item.category}</span>
+                                <button onclick="toggleStatus(${index})" class="px-2 py-0.5 rounded-full border text-[10px] font-bold ${statusColor}">${item.status}</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-bold text-accent1">-$${item.amount.toLocaleString()}</span>
+                            <button onclick="deleteExpense(${index})" class="text-gray-400 hover:text-rose-500 text-xs">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addPhoto() {
+            const fileInput = document.getElementById('photoInput');
+            const date = document.getElementById('photoDate').value.trim() || '未填時間';
+            const location = document.getElementById('photoLocation').value.trim() || '未填地點';
+
+            if (fileInput.files.length === 0) {
+                alert('請先選擇一張照片！');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photos.unshift({ image: e.target.result, date, location });
+                localStorage.setItem('concertPhotos', JSON.stringify(photos));
+                renderPhotos();
+                fileInput.value = '';
+                document.getElementById('photoDate').value = '';
+                document.getElementById('photoLocation').value = '';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        function deletePhoto(index) {
+            if (confirm('確定要刪除這張照片嗎？')) {
+                photos.splice(index, 1);
+                localStorage.setItem('concertPhotos', JSON.stringify(photos));
+                renderPhotos();
+            }
+        }
+
+        function renderPhotos() {
+            const gallery = document.getElementById('photoGallery');
+            gallery.innerHTML = '';
+            if (photos.length === 0) {
+                gallery.innerHTML = `<p class="col-span-2 text-xs text-center text-gray-400 py-6">還沒有上傳過照片，趕快上傳第一張回憶吧！</p>`;
+                return;
+            }
+
+            photos.forEach((p, index) => {
+                gallery.innerHTML += `
+                    <div class="bg-white dark:bg-card rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm relative group">
+                        <img src="${p.image}" class="w-full h-32 object-cover">
+                        <div class="p-2.5 text-xs space-y-0.5">
+                            <div class="font-bold truncate text-gray-800 dark:text-gray-200">📍 ${p.location}</div>
+                            <div class="text-gray-400 text-[11px]">📅 ${p.date}</div>
+                        </div>
+                        <button onclick="deletePhoto(${index})" class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">×</button>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
